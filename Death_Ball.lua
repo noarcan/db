@@ -36,7 +36,7 @@ local rootPart = character:FindFirstChild("HumanoidRootPart")
 -- Toggle 1: Movimiento Automático
 local movingForward = false
 local moveConnection
-local speed = 7
+local speed = 4
 
 local function moveCharacter(deltaTime)
     if movingForward and rootPart then
@@ -68,7 +68,7 @@ local function autoClick()
     while clicking do
         VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 0)
         VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 0)
-        task.wait(0.2)
+        task.wait()
     end
 end
 
@@ -135,22 +135,6 @@ local ToggleKey = Tab:CreateToggle({
         end
     end
 })
-
--- Eliminar la UI de "TeleportToMainLobbyUI" automáticamente
-local ButtonDestroyUI = Tab:CreateButton({
-    Name = "Eliminar Teleport UI",
-    Callback = function()
-        local player = game:GetService("Players").LocalPlayer
-        local gui = player:FindFirstChild("PlayerGui")
-        if gui then
-            local frame = gui:FindFirstChild("Frames") and gui.Frames:FindFirstChild("TeleportToMainLobbyUI")
-            if frame then
-                frame:Destroy()
-            end
-        end
-    end
-})
-
 
 -- Toggle para mostrar u ocultar la tienda de frutas
 local player = game:GetService("Players").LocalPlayer
