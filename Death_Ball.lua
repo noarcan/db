@@ -12,7 +12,7 @@ local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = playerGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 200, 0, 210)
+frame.Size = UDim2.new(0, 200, 0, 240)
 frame.Position = UDim2.new(0.4, 0, 0.3, 0)
 frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 frame.BorderSizePixel = 2
@@ -42,7 +42,7 @@ local isMinimized = false
 minimizeButton.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     content.Visible = not isMinimized
-    frame.Size = isMinimized and UDim2.new(0, 200, 0, 20) or UDim2.new(0, 200, 0, 210)
+    frame.Size = isMinimized and UDim2.new(0, 200, 0, 20) or UDim2.new(0, 200, 0, 240)
 end)
 
 -- Funcionalidad de drag (arrastrar)
@@ -53,6 +53,7 @@ title.InputBegan:Connect(function(input)
         dragging = true
         dragStart = input.Position
         startPos = frame.Position
+
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then
                 dragging = false
@@ -98,32 +99,46 @@ for i, toggleInfo in ipairs(toggles) do
     toggleStates[toggleInfo.flag] = false
 
     toggleButton.MouseButton1Click:Connect(function()
-        -- Cambiar estado visual y lógico del toggle
         toggleStates[toggleInfo.flag] = not toggleStates[toggleInfo.flag]
         toggleButton.Text = toggleInfo.name .. (toggleStates[toggleInfo.flag] and " [ON]" or " [OFF]")
 
         -- Lógica de cada toggle:
         if toggleInfo.flag == "AutoMove" then
-            -- Ahora, en lugar de mover en línea recta, se verifica la posición cada 1s
             if toggleStates[toggleInfo.flag] then
                 toggleConnections[toggleInfo.flag] = task.spawn(function()
+                    local deathPos = Vector3.new(16.41, 55.55, -160.83)
+                    local startPos = Vector3.new(13.74, 53.19, -115.41)
+                    local moveSpeed = 4
+                    local dt = 0.03
                     while toggleStates[toggleInfo.flag] do
                         local character = player.Character
                         if character and character:FindFirstChild("HumanoidRootPart") then
-                            local pos = character.HumanoidRootPart.Position
-                            local deathPos = Vector3.new(16.41, 55.55, -160.83)
-                            local targetPos = Vector3.new(13.74, 53.19, -115.41)
-                            -- Si el personaje está en la posición de muerte/fin, se teleporta a la posición de inicio
+                            local hrp = character.HumanoidRootPart
+                            local pos = hrp.Position
+                            -- Si el jugador está en la posición de muerte, se le teletransporta al inicio.
                             if (pos - deathPos).Magnitude < 1 then
-                                character:MoveTo(targetPos)
+                                hrp.CFrame = CFrame.new(startPos)
+                            else
+                                -- Si el jugador está en el punto de inicio, se espera (la partida no inició)
+                                if (pos - startPos).Magnitude < 1 then
+                                    task.wait(dt)
+                                else
+                                    -- Si el jugador se aleja del punto de inicio, se asume que la partida inició
+                                    hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -moveSpeed * dt)
+                                    task.wait(dt)
+                                end
                             end
+                        else
+                            task.wait(dt)
                         end
-                        task.wait(5)
+                        task.wait(dt)
                     end
                 end)
             else
-                toggleStates[toggleInfo.flag] = false
-                toggleConnections[toggleInfo.flag] = nil
+                if toggleConnections[toggleInfo.flag] then
+                    task.cancel(toggleConnections[toggleInfo.flag])
+                    toggleConnections[toggleInfo.flag] = nil
+                end
             end
 
         elseif toggleInfo.flag == "AutoClick" then
@@ -136,8 +151,10 @@ for i, toggleInfo in ipairs(toggles) do
                     end
                 end)
             else
-                toggleStates[toggleInfo.flag] = false
-                toggleConnections[toggleInfo.flag] = nil
+                if toggleConnections[toggleInfo.flag] then
+                    task.cancel(toggleConnections[toggleInfo.flag])
+                    toggleConnections[toggleInfo.flag] = nil
+                end
             end
 
         elseif toggleInfo.flag == "AntiAfk" then
@@ -164,8 +181,10 @@ for i, toggleInfo in ipairs(toggles) do
                     end
                 end)
             else
-                toggleStates[toggleInfo.flag] = false
-                toggleConnections[toggleInfo.flag] = nil
+                if toggleConnections[toggleInfo.flag] then
+                    task.cancel(toggleConnections[toggleInfo.flag])
+                    toggleConnections[toggleInfo.flag] = nil
+                end
             end
 
         elseif toggleInfo.flag == "FruitShop" then
@@ -176,3 +195,28 @@ for i, toggleInfo in ipairs(toggles) do
         end
     end)
 end
+
+-- Botón adicional para eliminar la alerta "TeleportToMainLobbyUI"
+local destroyAlertButton = Instance.new("TextButton")
+destroyAlertButton.Size = UDim2.new(1, -10, 0, 25)
+-- Se posiciona justo debajo del último toggle (5 toggles: posición Y = 5*30 = 150)
+destroyAlertButton.Position = UDim2.new(0, 5, 0, 150)
+destroyAlertButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+destroyAlertButton.Text = "Eliminar Alerta"
+destroyAlertButton.TextColor3 = Color3.new(1, 1, 1)
+destroyAlertButton.Parent = content
+
+destroyAlertButton.MouseButton1Click:Connect(function()
+    local uiMain = player.PlayerGui:FindFirstChild("UI")
+    if uiMain then
+        local frameAlert = uiMain:FindFirstChild("Frames") and uiMain.Frames:FindFirstChild("TeleportToMainLobbyUI")
+        if frameAlert then
+            frameAlert:Destroy()
+            print("UI eliminada")
+        else
+            print("No se encontró la UI a eliminar")
+        end
+    else
+        print("No se encontró el UI principal")
+    end
+end)
