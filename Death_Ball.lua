@@ -108,7 +108,7 @@ for i, toggleInfo in ipairs(toggles) do
                 toggleConnections[toggleInfo.flag] = task.spawn(function()
                     local deathPos = Vector3.new(16.41, 55.55, -160.83)
                     local startPos = Vector3.new(13.74, 53.19, -115.41)
-                    local moveSpeed = 10
+                    local moveSpeed = 30
                     local dt = 0.03
                     while toggleStates[toggleInfo.flag] do
                         local character = player.Character
