@@ -105,38 +105,27 @@ for i, toggleInfo in ipairs(toggles) do
         -- Lógica de cada toggle:
         if toggleInfo.flag == "AutoMove" then
             if toggleStates[toggleInfo.flag] then
-                toggleConnections[toggleInfo.flag] = task.spawn(function()
-                    local deathPos = Vector3.new(16.41, 55.55, -160.83)
-                    local startPos = Vector3.new(13.74, 53.19, -115.41)
-                    local moveSpeed = 30
-                    local dt = 0.03
-                    while toggleStates[toggleInfo.flag] do
-                        local character = player.Character
-                        if character and character:FindFirstChild("HumanoidRootPart") then
-                            local hrp = character.HumanoidRootPart
-                            local pos = hrp.Position
-                            -- Si el jugador está en la posición de muerte, se le teletransporta al inicio.
-                            if (pos - deathPos).Magnitude < 1 then
-                                hrp.CFrame = CFrame.new(startPos)
-                            else
-                                -- Si el jugador está en el punto de inicio, se espera (la partida no inició)
-                                if (pos - startPos).Magnitude < 1 then
-                                    task.wait(dt)
-                                else
-                                    -- Si el jugador se aleja del punto de inicio, se asume que la partida inició
-                                    hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -moveSpeed * dt)
-                                    task.wait(dt)
-                                end
-                            end
+                -- Configuración de posiciones y velocidad
+                local deathPos = Vector3.new(16.41, 55.55, -160.83)
+                local startPos = Vector3.new(13.74, 53.19, -115.41)
+                local moveSpeed = 16  -- Cambia este valor para modificar la velocidad
+                toggleConnections[toggleInfo.flag] = RunService.RenderStepped:Connect(function(dt)
+                    local character = player.Character
+                    if character and character:FindFirstChild("HumanoidRootPart") then
+                        local hrp = character.HumanoidRootPart
+                        local pos = hrp.Position
+                        if (pos - deathPos).Magnitude < 1 then
+                            hrp.CFrame = CFrame.new(startPos)
+                        elseif (pos - startPos).Magnitude < 1 then
+                            -- Si el jugador está en el punto de inicio, no se mueve (la partida aún no comenzó)
                         else
-                            task.wait(dt)
+                            hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -moveSpeed * dt)
                         end
-                        task.wait(dt)
                     end
                 end)
             else
                 if toggleConnections[toggleInfo.flag] then
-                    task.cancel(toggleConnections[toggleInfo.flag])
+                    toggleConnections[toggleInfo.flag]:Disconnect()
                     toggleConnections[toggleInfo.flag] = nil
                 end
             end
@@ -177,7 +166,7 @@ for i, toggleInfo in ipairs(toggles) do
                         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
                         task.wait(0.1)
                         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
-                        task.wait(5.5)
+                        task.wait(5.2)
                     end
                 end)
             else
@@ -188,9 +177,22 @@ for i, toggleInfo in ipairs(toggles) do
             end
 
         elseif toggleInfo.flag == "FruitShop" then
-            local fruitsUI = playerGui:FindFirstChild("UI") and playerGui.UI:FindFirstChild("Frames") and playerGui.UI.Frames:FindFirstChild("FruitsUI")
-            if fruitsUI then
-                fruitsUI.Visible = toggleStates[toggleInfo.flag]
+            -- Se usan ifs anidados para buscar el objeto de forma más segura.
+            local uiObj = playerGui:FindFirstChild("UI")
+            if uiObj then
+                local framesObj = uiObj:FindFirstChild("Frames")
+                if framesObj then
+                    local fruitsUI = framesObj:FindFirstChild("FruitsUI")
+                    if fruitsUI then
+                        fruitsUI.Visible = toggleStates[toggleInfo.flag]
+                    else
+                        warn("No se encontró FruitsUI")
+                    end
+                else
+                    warn("No se encontró Frames dentro de UI")
+                end
+            else
+                warn("No se encontró UI en PlayerGui")
             end
         end
     end)
@@ -209,12 +211,17 @@ destroyAlertButton.Parent = content
 destroyAlertButton.MouseButton1Click:Connect(function()
     local uiMain = player.PlayerGui:FindFirstChild("UI")
     if uiMain then
-        local frameAlert = uiMain:FindFirstChild("Frames") and uiMain.Frames:FindFirstChild("TeleportToMainLobbyUI")
-        if frameAlert then
-            frameAlert:Destroy()
-            print("UI eliminada")
+        local framesObj = uiMain:FindFirstChild("Frames")
+        if framesObj then
+            local frameAlert = framesObj:FindFirstChild("TeleportToMainLobbyUI")
+            if frameAlert then
+                frameAlert:Destroy()
+                print("UI eliminada")
+            else
+                print("No se encontró la UI a eliminar")
+            end
         else
-            print("No se encontró la UI a eliminar")
+            print("No se encontró Frames dentro de UI")
         end
     else
         print("No se encontró el UI principal")
