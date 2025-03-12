@@ -109,16 +109,22 @@ for i, toggleInfo in ipairs(toggles) do
                 local deathPos = Vector3.new(16.41, 55.55, -160.83)
                 local startPos = Vector3.new(13.74, 53.19, -115.41)
                 local moveSpeed = 16  -- Cambia este valor para modificar la velocidad
+                local thresholdDeath = 1
+                local thresholdY = 0.5  -- Umbral para considerar que el personaje está a la altura del spawn
+
                 toggleConnections[toggleInfo.flag] = RunService.RenderStepped:Connect(function(dt)
                     local character = player.Character
                     if character and character:FindFirstChild("HumanoidRootPart") then
                         local hrp = character.HumanoidRootPart
                         local pos = hrp.Position
-                        if (pos - deathPos).Magnitude < 1 then
+                        -- Si el jugador está en la posición de "muerte", se le teletransporta al spawn.
+                        if (pos - deathPos).Magnitude < thresholdDeath then
                             hrp.CFrame = CFrame.new(startPos)
-                        elseif (pos - startPos).Magnitude < 1 then
-                            -- Si el jugador está en el punto de inicio, no se mueve (la partida aún no comenzó)
+                        -- Si el jugador está a la altura del spawn, se asume que la partida aún no inició y se detiene el movimiento.
+                        elseif math.abs(pos.Y - startPos.Y) < thresholdY then
+                            -- Aquí no se mueve; se podría agregar lógica extra si se requiere.
                         else
+                            -- La partida inició: se mueve en línea recta usando el delta time real.
                             hrp.CFrame = hrp.CFrame * CFrame.new(0, 0, -moveSpeed * dt)
                         end
                     end
@@ -166,7 +172,7 @@ for i, toggleInfo in ipairs(toggles) do
                         VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.One, false, game)
                         task.wait(0.1)
                         VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.One, false, game)
-                        task.wait(5.2)
+                        task.wait(5.5)
                     end
                 end)
             else
@@ -177,7 +183,6 @@ for i, toggleInfo in ipairs(toggles) do
             end
 
         elseif toggleInfo.flag == "FruitShop" then
-            -- Se usan ifs anidados para buscar el objeto de forma más segura.
             local uiObj = playerGui:FindFirstChild("UI")
             if uiObj then
                 local framesObj = uiObj:FindFirstChild("Frames")
