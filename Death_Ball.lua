@@ -21,7 +21,7 @@ frame.Parent = screenGui
 local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, 0, 0, 20)
 title.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-title.Text = "Simple GUI"
+title.Text = "Gems GUI"
 title.TextColor3 = Color3.new(1, 1, 1)
 title.Parent = frame
 
@@ -108,9 +108,9 @@ for i, toggleInfo in ipairs(toggles) do
                 -- Configuración de posiciones y velocidad
                 local deathPos = Vector3.new(16.41, 55.55, -160.83)
                 local startPos = Vector3.new(13.74, 53.19, -115.41)
-                local moveSpeed = 16  -- Cambia este valor para modificar la velocidad
+                local moveSpeed = 32  -- Cambia este valor para modificar la velocidad
                 local thresholdDeath = 1
-                local thresholdY = 0.5  -- Umbral para considerar que el personaje está a la altura del spawn
+                local thresholdY = 0.2  -- Umbral para considerar que el personaje está a la altura del spawn
 
                 toggleConnections[toggleInfo.flag] = RunService.RenderStepped:Connect(function(dt)
                     local character = player.Character
