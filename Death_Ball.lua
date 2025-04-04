@@ -108,7 +108,7 @@ for i, toggleInfo in ipairs(toggles) do
                 -- Configuración de posiciones y velocidad
                 local deathPos = Vector3.new(16.41, 55.55, -160.83)
                 local startPos = Vector3.new(13.74, 53.19, -115.41)
-                local moveSpeed = 64  -- Cambia este valor para modificar la velocidad
+                local moveSpeed = 32  -- Cambia este valor para modificar la velocidad
                 local thresholdDeath = 1
                 local thresholdY = 0.2  -- Umbral para considerar que el personaje está a la altura del spawn
 
